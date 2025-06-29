@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aplikasi Keuangan - Pemasukan & Pengeluaran</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #121212;
+        --text: #eee;
+        --box: #1e1e1e;
+        --input: #333;
+        --thead: #2c2c2c;
+        --hover: #2a2a2a;
+        --saldo: #ffb74d;
+        --income: #66bb6a;
+        --expense: #ef5350;
+      }
+
+      body.light {
+        --bg: #f0f0f0;
+        --text: #111;
+        --box: #fff;
+        --input: #fff;
+        --thead: #e0e0e0;
+        --hover: #f5f5f5;
+        --saldo: #ff9800;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        padding: 2rem;
+        transition: all 0.3s ease;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: auto;
+        background: var(--box);
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 1rem;
+        color: #90caf9;
+      }
+
+      #datetime {
+        text-align: center;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        color: #ccc;
+      }
+
+      .filter,
+      form {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      input,
+      select,
+      button {
+        padding: 0.7rem;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="date"],
+      select {
+        flex: 1 1 180px;
+        background: var(--input);
+        color: var(--text);
+      }
+
+      button {
+        background-color: #7b1fa2;
+        color: white;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      button:hover {
+        background-color: #ba68c8;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2rem;
+        color: var(--text);
+      }
+
+      th,
+      td {
+        padding: 0.9rem;
+        text-align: left;
+        border-bottom: 1px solid #444;
+      }
+
+      th {
+        background-color: var(--thead);
+      }
+
+      tr:hover {
+        background-color: var(--hover);
+      }
+
+      .summary,
+      .saldo {
+        text-align: center;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+      }
+
+      .saldo {
+        font-weight: bold;
+        font-size: 1.3rem;
+        color: var(--saldo);
+      }
+
+      .income {
+        color: var(--income);
+        font-weight: bold;
+      }
+
+      .expense {
+        color: var(--expense);
+        font-weight: bold;
+      }
+
+      .fa-plus,
+      .fa-minus,
+      .fa-trash {
+        margin-right: 5px;
+      }
+
+      .theme-toggle {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #333;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        z-index: 1000;
+      }
+
+      body.light .theme-toggle {
+        background: #ddd;
+        color: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="theme-toggle" id="toggle-btn">
+      <i class="fas fa-moon"></i> Tema
+    </button>
+    <div class="container">
+      <h1><i class="fas fa-wallet"></i> Catatan Keuangan Damanani</h1>
+      <div id="datetime">Waktu saat ini: -</div>
+
+      <div class="filter">
+        <label for="monthFilter">Filter Bulan: </label>
+        <select id="monthFilter">
+          <option value="all">Semua</option>
+        </select>
+      </div>
+
+      <form id="finance-form">
+        <input type="text" id="description" placeholder="Deskripsi" required />
+        <input type="number" id="amount" placeholder="Jumlah (Rp)" required />
+        <input type="date" id="custom-date" />
+        <select id="type">
+          <option value="income">Pemasukan</option>
+          <option value="expense">Pengeluaran</option>
+        </select>
+        <button type="submit"><i class="fas fa-plus"></i>Tambah</button>
+      </form>
+
+      <table id="finance-table">
+        <thead>
+          <tr>
+            <th>Deskripsi</th>
+            <th>Jumlah</th>
+            <th>Tipe</th>
+            <th>Waktu</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="summary">
+        <div>
+          Total Pemasukan: <span class="income" id="total-income">Rp 0</span>
+        </div>
+        <div>
+          Total Pengeluaran:
+          <span class="expense" id="total-expense">Rp 0</span>
+        </div>
+      </div>
+      <div class="saldo">Saldo Saat Ini: <span id="saldo">Rp 0</span></div>
+    <div class="text-center" style="text-align: center;">
+</div>
+
+
+    <script>
+      // Tema
+      document
+        .getElementById("toggle-btn")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+          document.body.classList.toggle("light");
+        });
+
+      // Data
+      const form = document.getElementById("finance-form");
+      const tableBody = document.querySelector("#finance-table tbody");
+      const totalIncomeEl = document.getElementById("total-income");
+      const totalExpenseEl = document.getElementById("total-expense");
+      const saldoEl = document.getElementById("saldo");
+      const monthFilter = document.getElementById("monthFilter");
+
+      let records = JSON.parse(localStorage.getItem("records")) || [];
+
+      function updateTable() {
+        tableBody.innerHTML = "";
+        let income = 0,
+          expense = 0;
+        const month = monthFilter.value;
+        const months = new Set();
+
+        records.forEach((r, i) => {
+          const rMonth = r.date.slice(0, 7);
+          months.add(rMonth);
+          if (month !== "all" && rMonth !== month) return;
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+          <td>${r.description}</td>
+          <td>Rp ${r.amount.toLocaleString()}</td>
+          <td class="${r.type}">${
+            r.type === "income" ? "Pemasukan" : "Pengeluaran"
+          }</td>
+          <td>${r.date}</td>
+          <td><button onclick="deleteRecord(${i})"><i class="fas fa-trash"></i>Hapus</button></td>
+        `;
+          tableBody.appendChild(row);
+
+          if (r.type === "income") income += r.amount;
+          else expense += r.amount;
+        });
+
+        totalIncomeEl.textContent = `Rp ${income.toLocaleString()}`;
+        totalExpenseEl.textContent = `Rp ${expense.toLocaleString()}`;
+        saldoEl.textContent = `Rp ${(income - expense).toLocaleString()}`;
+
+        updateMonthFilter([...months]);
+      }
+
+      function updateMonthFilter(months) {
+        monthFilter.innerHTML = '<option value="all">Semua</option>';
+        months.sort().forEach((m) => {
+          const opt = document.createElement("option");
+          opt.value = m;
+          opt.textContent = m;
+          monthFilter.appendChild(opt);
+        });
+      }
+
+      function deleteRecord(index) {
+        records.splice(index, 1);
+        localStorage.setItem("records", JSON.stringify(records));
+        updateTable();
+      }
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const description = document.getElementById("description").value;
+        const amount = parseInt(document.getElementById("amount").value);
+        const dateInput = document.getElementById("custom-date").value;
+        const date =
+          dateInput || new Date().toISOString().slice(0, 16).replace("T", " ");
+        const type = document.getElementById("type").value;
+
+        records.push({ description, amount, type, date });
+        localStorage.setItem("records", JSON.stringify(records));
+        form.reset();
+        updateTable();
+      });
+
+      monthFilter.addEventListener("change", updateTable);
+      updateTable();
+
+      // Tampilkan jam realtime
+      function updateDateTime() {
+        const now = new Date();
+        const options = {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        };
+        const tanggal = now.toLocaleDateString("id-ID", options);
+        const jam = now.toLocaleTimeString("id-ID");
+        document.getElementById(
+          "datetime"
+        ).textContent = `Waktu saat ini: ${tanggal}, ${jam}`;
+      }
+      setInterval(updateDateTime, 1000);
+      updateDateTime();
+    </script>
+  </body>
+</html>
